@@ -1,0 +1,5 @@
+node_modules
+certs/*
+!certs/.gitkeep
+output/*
+!output/.gitkeep
