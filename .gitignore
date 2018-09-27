@@ -1,5 +1,6 @@
 node_modules
 certs/*
 !certs/.gitkeep
+!certs/certificate.p12
 output/*
 !output/.gitkeep
