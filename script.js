@@ -1,4 +1,5 @@
 // credits https://github.com/vbuch/node-signpdf/blob/master/src/signpdf.test.js
+// credits https://stackoverflow.com/questions/15969733/verify-pkcs7-pem-signature-unpack-data-in-node-js/16148331#16148331
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
