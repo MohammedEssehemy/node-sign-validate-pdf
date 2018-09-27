@@ -11,8 +11,7 @@ const PKCS12_CERT_BAG = '1.2.840.113549.1.12.10.1.3';
 const PKCS12_KEY_BAG = '1.2.840.113549.1.12.10.1.2';
 
 
-let signedPDFFileRelativePath = path.join(__dirname, 'output', `signed.pdf`);
-let unSignedPDFFileRelativePath = path.join(__dirname, 'output',`unsigned.pdf`);
+let signedPDFFilePath = path.join(__dirname, 'output', `signed.pdf`);
 
 const addSignaturePlaceholder = ({
   pdf,
@@ -297,7 +296,8 @@ const signFunc = async () => {
     pdfBuffer,
     fs.readFileSync(certPath)
   );
-  fs.writeFileSync(signedPDFFileRelativePath, signedPdf);
+  fs.writeFileSync(signedPDFFilePath, signedPdf);
+  console.log(`**** signedpdf written in ${signedPDFFilePath} ****`);
 }
 
 const extractSignature = (pdf) => {
@@ -335,23 +335,20 @@ const extractSignature = (pdf) => {
 
 
 function verify() {
-  const pdf = fs.readFileSync(signedPDFFileRelativePath);
+  const pdf = fs.readFileSync(signedPDFFilePath);
+  console.log(`**** validating file ${signedPDFFilePath} ****`);
   const extractedData = extractSignature(pdf);
-  fs.writeFileSync(unSignedPDFFileRelativePath, extractedData.signedData)
   const p7Asn1 = forge.asn1.fromDer(extractedData.signature);
   const message = forge.pkcs7.messageFromAsn1(p7Asn1);
   const sig = message.rawCapture.signature;
-  ////////
   const attrs = message.rawCapture.authenticatedAttributes;
   const set = forge.asn1.create(forge.asn1.Class.UNIVERSAL, forge.asn1.Type.SET, true, attrs);
   const buf = Buffer.from(forge.asn1.toDer(set).data, 'binary');
-  // const sigHex = Buffer.from(sig, 'binary').toString('hex');
-
   const cert = forge.pki.certificateToPem(message.certificates[0]);
   const verifier = crypto.createVerify('RSA-SHA256');
   verifier.update(buf);
-  const validaAuthenticatedAttributes = verifier.verify(cert, sig, 'binary')
-  if(!validaAuthenticatedAttributes) throw new Error("Wrong authenticated attributes");
+  const validAuthenticatedAttributes = verifier.verify(cert, sig, 'binary')
+  if(!validAuthenticatedAttributes) throw new Error("Wrong authenticated attributes");
   const oids = forge.pki.oids;
   const hash = crypto.createHash('SHA256');
   const data = extractedData.signedData;
@@ -361,11 +358,11 @@ function verify() {
   const dataDigest = hash.digest();
   const validContentDigest = dataDigest.toString('binary') === attrDigest;
   if(!validContentDigest) throw new Error('Wrong content digest');
+  console.log('**** FILE VALID ****');
 }
 
 async function main () {
   await signFunc();
-  debugger;
   verify();
 }
 
